@@ -12,8 +12,7 @@ use crate::json_ld;
 use futures::future::{BoxFuture, FutureExt};
 use iref::{Iri, IriBuf};
 use json::JsonValue;
-use json_ld::{util::AsJson, Document, JsonContext, ProcessingMode, RemoteDocument};
-pub use json_ld::Loader;
+use json_ld::{util::AsJson, Document, JsonContext, Loader, ProcessingMode, RemoteDocument};
 
 #[derive(Debug, Clone)]
 pub enum RdfDirection {
@@ -131,6 +130,7 @@ pub const CITIZENSHIP_V1_CONTEXT: &str = "https://w3id.org/citizenship/v1";
 pub const VACCINATION_V1_CONTEXT: &str = "https://w3id.org/vaccination/v1";
 pub const TRACEABILITY_CONTEXT: &str = "https://w3id.org/traceability/v1";
 pub const EIP712SIG_V0_1_CONTEXT: &str = "https://demo.spruceid.com/ld/eip712sig-2021/v0.1.jsonld";
+pub const BBS_CONTEXT: &str = "https://w3id.org/security/bbs/v1";
 
 lazy_static! {
     pub static ref CREDENTIALS_V1_CONTEXT_DOCUMENT: RemoteDocument<JsonValue> = {
@@ -223,6 +223,12 @@ lazy_static! {
         let iri = Iri::new(EIP712SIG_V0_1_CONTEXT).unwrap();
         RemoteDocument::new(doc, iri)
     };
+    pub static ref BBS_CONTEXT_DOCUMENT: RemoteDocument<JsonValue> = {
+        let jsonld = ssi_contexts::BBS_V1;
+        let doc = json::parse(jsonld).unwrap();
+        let iri = Iri::new(BBS_CONTEXT).unwrap();
+        RemoteDocument::new(doc, iri)
+    };
 }
 
 pub struct StaticLoader;
@@ -251,14 +257,14 @@ impl Loader for StaticLoader {
                 CITIZENSHIP_V1_CONTEXT => Ok(CITIZENSHIP_V1_CONTEXT_DOCUMENT.clone()),
                 VACCINATION_V1_CONTEXT => Ok(VACCINATION_V1_CONTEXT_DOCUMENT.clone()),
                 TRACEABILITY_CONTEXT => Ok(TRACEABILITY_CONTEXT_DOCUMENT.clone()),
-                EIP712SIG_V0_1_CONTEXT => Ok(EIP712SIG_V0_1_CONTEXT_DOCUMENT.clone()),
+                BBS_CONTEXT => Ok(BBS_CONTEXT_DOCUMENT.clone()),
                 _ => {
                     eprintln!("unknown context {}", url);
                     Err(json_ld::ErrorCode::LoadingDocumentFailed.into())
                 }
             }
         }
-        .boxed()
+            .boxed()
     }
 }
 
@@ -479,7 +485,7 @@ pub fn generate_node_map(
                 subject_node.insert(active_property, entry);
             }
         }
-    // 5
+        // 5
     } else if let Some(element_list) = element_obj.remove(AT_LIST) {
         // 5.1
         let mut result: JsonValue = JsonValue::new_object();
@@ -534,7 +540,7 @@ pub fn generate_node_map(
             };
             list_entry_of_list.push(result);
         };
-    // 6
+        // 6
     } else {
         // 6.1
         let id = match element_obj.remove(AT_ID) {
@@ -820,8 +826,8 @@ pub fn json_ld_to_rdf(
                 // 1.3.2.1
                 #[allow(clippy::if_same_then_else)]
                 if property == AT_TYPE
-                // TODO: find out why type is not getting turned into @type here
-                || property == "type"
+                    // TODO: find out why type is not getting turned into @type here
+                    || property == "type"
                 {
                     for type_ in JsonValuesIter::from(values) {
                         let type_ = match Object::try_from(type_.to_string()) {
@@ -923,7 +929,7 @@ impl TryFrom<&JsonValue> for ValueObject {
             JsonValue::Object(object) => object,
             _ => return Err(Error::ExpectedObject),
         }
-        .clone();
+            .clone();
         let value = match object.remove(AT_VALUE) {
             Some(value) => value,
             None => return Err(Error::ExpectedValue),
@@ -1055,7 +1061,7 @@ impl TryFrom<&JsonValue> for ListObject {
             JsonValue::Object(object) => object,
             _ => return Err(Error::ExpectedObject),
         }
-        .clone();
+            .clone();
         let list = match object.remove(AT_LIST) {
             Some(value) => value,
             None => return Err(Error::ExpectedList),
@@ -1208,11 +1214,7 @@ pub fn object_to_rdf(
             }
         } else {
             // 11
-            let num = if num_f64 == -0.0 {
-                "0".to_string()
-            } else {
-                format!("{:.0}", num_f64)
-            };
+            let num = format!("{:.0}", num_f64);
             value = JsonValue::String(num);
             if datatype == None {
                 datatype = Some("http://www.w3.org/2001/XMLSchema#integer");
@@ -1492,8 +1494,8 @@ pub async fn json_to_dataset<T>(
     options: Option<&JsonLdOptions>,
     loader: &mut T,
 ) -> Result<DataSet, Error>
-where
-    T: Loader<Document = JsonValue> + std::marker::Send + Sync,
+    where
+        T: Loader<Document = JsonValue> + std::marker::Send + Sync,
 {
     let options = options.unwrap_or(&DEFAULT_JSON_LD_OPTIONS);
     let base = match options.base {
@@ -1644,7 +1646,7 @@ mod tests {
             JsonValue::Object(obj) => Ok(obj),
             _ => Err(Error::ExpectedObject),
         }
-        .unwrap();
+            .unwrap();
         let case = std::env::args().skip(2).next();
         let sequence = manifest_obj.get("sequence").unwrap();
         let mut passed = 0;
