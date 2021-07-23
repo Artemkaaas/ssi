@@ -131,6 +131,7 @@ pub const VACCINATION_V1_CONTEXT: &str = "https://w3id.org/vaccination/v1";
 pub const TRACEABILITY_CONTEXT: &str = "https://w3id.org/traceability/v1";
 pub const EIP712SIG_V0_1_CONTEXT: &str = "https://demo.spruceid.com/ld/eip712sig-2021/v0.1.jsonld";
 pub const BBS_CONTEXT: &str = "https://w3id.org/security/bbs/v1";
+pub const SUBMISSION_CONTEXT: &str = "https://identity.foundation/presentation-exchange/submission/v1";
 
 lazy_static! {
     pub static ref CREDENTIALS_V1_CONTEXT_DOCUMENT: RemoteDocument<JsonValue> = {
@@ -229,6 +230,12 @@ lazy_static! {
         let iri = Iri::new(BBS_CONTEXT).unwrap();
         RemoteDocument::new(doc, iri)
     };
+    pub static ref SUBMISSION_CONTEXT_DOCUMENT: RemoteDocument<JsonValue> = {
+        let jsonld = ssi_contexts::PRESENTATION_SUBMISSION_V1;
+        let doc = json::parse(jsonld).unwrap();
+        let iri = Iri::new(SUBMISSION_CONTEXT).unwrap();
+        RemoteDocument::new(doc, iri)
+    };
 }
 
 pub struct StaticLoader;
@@ -258,6 +265,7 @@ impl Loader for StaticLoader {
                 VACCINATION_V1_CONTEXT => Ok(VACCINATION_V1_CONTEXT_DOCUMENT.clone()),
                 TRACEABILITY_CONTEXT => Ok(TRACEABILITY_CONTEXT_DOCUMENT.clone()),
                 BBS_CONTEXT => Ok(BBS_CONTEXT_DOCUMENT.clone()),
+                SUBMISSION_CONTEXT => Ok(SUBMISSION_CONTEXT_DOCUMENT.clone()),
                 _ => {
                     eprintln!("unknown context {}", url);
                     Err(json_ld::ErrorCode::LoadingDocumentFailed.into())
