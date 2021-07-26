@@ -130,7 +130,8 @@ pub const CITIZENSHIP_V1_CONTEXT: &str = "https://w3id.org/citizenship/v1";
 pub const VACCINATION_V1_CONTEXT: &str = "https://w3id.org/vaccination/v1";
 pub const TRACEABILITY_CONTEXT: &str = "https://w3id.org/traceability/v1";
 pub const EIP712SIG_V0_1_CONTEXT: &str = "https://demo.spruceid.com/ld/eip712sig-2021/v0.1.jsonld";
-pub const BBS_CONTEXT: &str = "https://w3id.org/security/bbs/v1";
+pub const BBS_V1_CONTEXT: &str = "https://w3id.org/security/bbs/v1";
+pub const BBS_V2_CONTEXT: &str = "https://w3id.org/security/bbs/v2";
 pub const SUBMISSION_CONTEXT: &str = "https://identity.foundation/presentation-exchange/submission/v1";
 
 lazy_static! {
@@ -224,10 +225,16 @@ lazy_static! {
         let iri = Iri::new(EIP712SIG_V0_1_CONTEXT).unwrap();
         RemoteDocument::new(doc, iri)
     };
-    pub static ref BBS_CONTEXT_DOCUMENT: RemoteDocument<JsonValue> = {
+    pub static ref BBS_V1_CONTEXT_DOCUMENT: RemoteDocument<JsonValue> = {
         let jsonld = ssi_contexts::BBS_V1;
         let doc = json::parse(jsonld).unwrap();
-        let iri = Iri::new(BBS_CONTEXT).unwrap();
+        let iri = Iri::new(BBS_V1_CONTEXT).unwrap();
+        RemoteDocument::new(doc, iri)
+    };
+    pub static ref BBS_V2_CONTEXT_DOCUMENT: RemoteDocument<JsonValue> = {
+        let jsonld = ssi_contexts::BBS_V2;
+        let doc = json::parse(jsonld).unwrap();
+        let iri = Iri::new(BBS_V2_CONTEXT).unwrap();
         RemoteDocument::new(doc, iri)
     };
     pub static ref SUBMISSION_CONTEXT_DOCUMENT: RemoteDocument<JsonValue> = {
@@ -264,7 +271,8 @@ impl Loader for StaticLoader {
                 CITIZENSHIP_V1_CONTEXT => Ok(CITIZENSHIP_V1_CONTEXT_DOCUMENT.clone()),
                 VACCINATION_V1_CONTEXT => Ok(VACCINATION_V1_CONTEXT_DOCUMENT.clone()),
                 TRACEABILITY_CONTEXT => Ok(TRACEABILITY_CONTEXT_DOCUMENT.clone()),
-                BBS_CONTEXT => Ok(BBS_CONTEXT_DOCUMENT.clone()),
+                BBS_V1_CONTEXT => Ok(BBS_V1_CONTEXT_DOCUMENT.clone()),
+                BBS_V2_CONTEXT => Ok(BBS_V2_CONTEXT_DOCUMENT.clone()),
                 SUBMISSION_CONTEXT => Ok(SUBMISSION_CONTEXT_DOCUMENT.clone()),
                 _ => {
                     eprintln!("unknown context {}", url);
