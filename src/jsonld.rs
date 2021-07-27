@@ -12,7 +12,9 @@ use crate::json_ld;
 use futures::future::{BoxFuture, FutureExt};
 use iref::{Iri, IriBuf};
 use json::JsonValue;
-use json_ld::{util::AsJson, Document, JsonContext, Loader, ProcessingMode, RemoteDocument};
+use json_ld::{Document, JsonContext, Loader, ProcessingMode, RemoteDocument, ExpandedDocument, Id};
+
+pub use json_ld::util::AsJson;
 
 #[derive(Debug, Clone)]
 pub enum RdfDirection {
@@ -1502,16 +1504,15 @@ pub fn list_to_rdf(
     Ok(first)
 }
 
-/// <https://w3c.github.io/json-ld-api/#dom-jsonldprocessor-tordf>
-pub async fn json_to_dataset<T>(
+pub async fn expand_json<T>(
     json: &str,
     more_contexts_json: Option<&String>,
     lax: bool,
     options: Option<&JsonLdOptions>,
     loader: &mut T,
-) -> Result<DataSet, Error>
+) -> Result<ExpandedDocument<IriBuf>, Error>
     where
-        T: Loader<Document = JsonValue> + std::marker::Send + Sync,
+        T: Loader<Document = JsonValue> + std::marker::Send + Sync
 {
     let options = options.unwrap_or(&DEFAULT_JSON_LD_OPTIONS);
     let base = match options.base {
@@ -1556,6 +1557,22 @@ pub async fn json_to_dataset<T>(
     expansion_options.ordered = false;
     let expanding = doc.expand_with(base, &context, loader, expansion_options);
     let expanded_doc = expanding.await?;
+    Ok(expanded_doc)
+}
+
+/// <https://w3c.github.io/json-ld-api/#dom-jsonldprocessor-tordf>
+pub async fn json_to_dataset<T>(
+    json: &str,
+    more_contexts_json: Option<&String>,
+    lax: bool,
+    options: Option<&JsonLdOptions>,
+    loader: &mut T,
+) -> Result<DataSet, Error>
+    where
+        T: Loader<Document = JsonValue> + std::marker::Send + Sync,
+{
+    let options = options.unwrap_or(&DEFAULT_JSON_LD_OPTIONS);
+    let expanded_doc = expand_json(json, more_contexts_json, lax, Some(&options), loader).await?;
     let mut node_map = Map::new();
     node_map.insert(AT_DEFAULT.to_string(), Map::new());
     let mut blank_node_id_generator = BlankNodeIdentifierGenerator::default();
