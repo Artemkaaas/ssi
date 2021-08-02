@@ -60,10 +60,10 @@ bs58 = { version = "0.4", features = ["check"] }
 thiserror = "1.0"
 keccak-hash = { version = "0.7", optional = true }
 # TODO make this optional, or remove it
-ecdsa = "0.11.1"
+ecdsa = "0.10.2"
 digest = "0.9"
-k256 = { version = "0.8", optional = true, features = ["zeroize", "ecdsa"] }
-p256 = { version = "0.8", optional = true, features = ["zeroize", "ecdsa"] }
+k256 = { version = "0.7", optional = true, features = ["zeroize", "ecdsa"] }
+p256 = { version = "0.7", optional = true, features = ["zeroize", "ecdsa"] }
 ssi-contexts = { version = "0.1.0", path = "contexts/" }
 ripemd160 = { version = "0.9", optional = true }
 sshkeys = "0.3"
